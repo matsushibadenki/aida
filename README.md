@@ -191,30 +191,20 @@ graph TD
 
 ユーザーからのリクエストは、Orchestratorを中心とした動的なループで処理されます。
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Main
-    participant Orchestrator
-    participant PlanningAgent
-    participant ActionAgents as "Coding/Search/Exec Agents"
-
-    User->>Main: "Input development task"
-    Main->>Orchestrator: "run_task(prompt)"
-      
-    loop Task Execution Loop
-        Orchestrator->>PlanningAgent: "run(goal, history, last_result)"
-        PlanningAgent-->>Orchestrator: "Next Action"
-          
-        alt action.type is finish
-            Orchestrator-->>Main: "Task completed"
-            break
-        end
-
-        Orchestrator->>ActionAgents: "Execute based on action.type"
-        ActionAgents-->>Orchestrator: "Execution result"
-        Orchestrator-->>Orchestrator: "Update last_result and history"
-    end
+```
+1. User → Main: 開発タスクを入力
+2. Main → Orchestrator: run_task(prompt)
+3. Loop開始:
+   a. Orchestrator → PlanningAgent: run(goal, history, last_result)
+   b. PlanningAgent → Orchestrator: 次のAction
+   c. if action.type == "finish":
+      - Orchestrator → Main: タスク完了
+      - ループ終了
+   d. else:
+      - Orchestrator → ActionAgents: action.typeに応じて実行
+      - ActionAgents → Orchestrator: 実行結果
+      - Orchestrator: last_resultとhistoryを更新
+   e. ループ継続
 ```
 
 ### **4. 主要なデータ構造**
