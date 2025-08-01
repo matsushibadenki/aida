@@ -92,6 +92,7 @@ Prompt \> が表示されたら、開発タスクを入力してください。
 
 クラス間の依存関係は、**DI（Dependency Injection）コンテナ**によって管理されており、各コンポーネントの疎結合性とテスト容易性を高めています。
 
+```mermaid
 graph TD  
     subgraph "User Interface"  
         UI\["main.py\<br\>Chat Interface"\]  
@@ -151,6 +152,7 @@ graph TD
     Debugging \-- "Uses" \--\> Retrieval
 
     LLMClient \-- "Communicates with" \--\> Ollama
+```
 
 ### **2\. コンポーネント詳細**
 
