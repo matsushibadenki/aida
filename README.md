@@ -197,23 +197,23 @@ sequenceDiagram
     participant Main
     participant Orchestrator
     participant PlanningAgent
-    participant ActionAgents as "[Coding/Search/Exec...]"
+    participant ActionAgents as "Coding/Search/Exec Agents"
 
-    User->>Main: "開発タスクを入力"
+    User->>Main: "Input development task"
     Main->>Orchestrator: "run_task(prompt)"
       
     loop Task Execution Loop
         Orchestrator->>PlanningAgent: "run(goal, history, last_result)"
-        PlanningAgent-->>Orchestrator: "次のアクション(Action)"
+        PlanningAgent-->>Orchestrator: "Next Action"
           
-        alt action.type is "finish"
-            Orchestrator-->>Main: "タスク完了"
+        alt action.type is finish
+            Orchestrator-->>Main: "Task completed"
             break
         end
 
-        Orchestrator->>ActionAgents: "action.typeに応じて実行"
-        ActionAgents-->>Orchestrator: "実行結果"
-        Orchestrator-->>Orchestrator: "last_resultとhistoryを更新"
+        Orchestrator->>ActionAgents: "Execute based on action.type"
+        ActionAgents-->>Orchestrator: "Execution result"
+        Orchestrator-->>Orchestrator: "Update last_result and history"
     end
 ```
 
