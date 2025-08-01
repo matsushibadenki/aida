@@ -1,0 +1,11 @@
+# path: requirements.txt
+# title: Python Package Requirements
+# role: Lists the project's Python dependencies.
+
+langchain
+chromadb
+pydantic
+pyyaml
+dependency-injector
+langchain-text-splitters
+langchain-ollama

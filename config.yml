@@ -1,0 +1,14 @@
+# path: aida/config.yml
+# title: Application Configuration
+# role: Provides configuration settings for the AIDA application.
+
+llm:
+  provider: "ollama"
+  model: "gemma3:latest"
+  host: "http://localhost:11434"
+
+rag:
+  chunk_size: 1000
+  chunk_overlap: 200
+
+max_retries: 5

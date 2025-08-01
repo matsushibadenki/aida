@@ -1,0 +1,6 @@
+# path: pyproject.toml
+# title: Pyproject Configuration
+# role: Configures Python project tools like mypy.
+
+[tool.mypy]
+ignore_missing_imports = true
