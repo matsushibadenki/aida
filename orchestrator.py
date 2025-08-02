@@ -102,7 +102,13 @@ class Orchestrator:
                     break
 
                 # --- Action Execution ---
-                if action.type == "search":
+                if action.type == "chat":
+                    last_result = action.description
+                    print(f"AIDA: {last_result}")
+                    task_successful = True
+                    break
+
+                elif action.type == "search":
                     search_results = self.search_agent.run(sandbox_path, action.description)
                     last_result = f"Found {len(search_results)} matching files:\n" + "\n".join(search_results)
                     print(last_result)

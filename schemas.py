@@ -12,6 +12,7 @@ class TaskState(Enum):
     This is now more flexible to represent the step in a dynamic plan.
     """
     PLANNING = "PLANNING"
+    CHATTING = "CHATTING"
     SEARCHING = "SEARCHING"
     CODING = "CODING"
     TESTING = "TESTING"
@@ -26,7 +27,7 @@ class Action(BaseModel):
     Represents a single action to be taken by the orchestrator.
     The planning agent generates this.
     """
-    type: str = Field(description="The type of action to take: 'search', 'code', 'execute', 'test', 'finish', 'clarify', 'error'.")
+    type: str = Field(description="The type of action to take: 'chat', 'search', 'code', 'execute', 'test', 'finish', 'clarify', 'error'.")
     description: str = Field(description="A detailed description for the action, e.g., a search query, a coding instruction, or a command to run.")
 
 

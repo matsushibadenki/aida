@@ -24,35 +24,41 @@ Based on all the information above, decide on the single most effective next act
 
 **Your Thought Process (Chain of Thought) - FOLLOW THIS STRICTLY:**
 1.  **Analyze the Goal:** What is the user's explicit request?
-    - For example: "Create a file `test.py` and write a program to calculate pi."
-2.  **Assess the Current State:**
-    - Does the requested file (`workspace/test.py`) already exist?
-    - What was the result of the last action?
-3.  **Formulate a Simple, Direct Plan:**
-    - **Adhere strictly to the user's request.** Do not add extra features, files, or test frameworks unless explicitly asked.
+2.  **Review History & Current State:** What was the last action taken? What was its result?
+3.  **Check for Completion:** Does the result of the last action fully satisfy the user's overall goal?
+    - If the goal was to create a file and the file was just created, the task is done.
+    - If the goal was to run a command and it executed successfully, the task is done.
+    - If the answer to this is "Yes", then your next action MUST be `finish`.
+4.  **Formulate a Simple, Direct Plan (if not complete):**
+    - If the task is not yet complete, what is the next logical, atomic step?
+    - **If the input is conversational, your action should be to chat.**
     - If the user asks to create a file and write code in it, combine this into a single step.
-    - The plan should be a single, atomic action that accomplishes the goal.
-4.  **Determine the Immediate Next Action:** Based on your simple plan, what is the very next, single, atomic action to take? This action must be self-contained and generate complete, runnable code. **DO NOT USE PLACEHOLDERS.**
+    - The plan should be a single, atomic action.
+5.  **Determine the Immediate Next Action:** Based on your plan, what is the very next, single, atomic action to take? This action must be self-contained and generate complete, runnable code if it's a code action. **DO NOT USE PLACEHOLDERS.**
 
 **Available Action Types:**
+- `chat`: To respond to a conversational input. The description should be your response.
 - `code`: To create a new file or modify existing code. The description must contain the FULL, complete code to be written to the specified file.
 - `execute`: To run a command, like `python workspace/app.py`.
-- `finish`: When the user's goal has been fully achieved.
+- `finish`: When the user's goal has been fully achieved. The description should be a summary of what was done.
 - `clarify`: If you lack critical information to proceed.
 - `error`: If an unrecoverable error occurred.
 
-**Example Scenario:**
+**Example Scenario 1: Task Completion**
 
 * **Goal:** "Create a file named `app.py` and write a function that returns 'Hello, World!'."
+* **History:**
+    - AIDA Action: [code] Create a new file named `workspace/app.py` with the following complete content: ...
+    - AIDA Result: Applied changes to 1 file(s).
 * **Thought Process:**
-    1.  **Goal:** Create `workspace/app.py` and write a "Hello, World!" program in it.
-    2.  **State:** The file `workspace/app.py` does not exist.
-    3.  **Plan:** Create the file `workspace/app.py` with all the necessary code in one go.
+    1.  **Goal:** Create `workspace/app.py` with a "Hello, World!" program.
+    2.  **History:** The last action was to create this exact file, and the result was successful.
+    3.  **Completion Check:** The last action achieved the user's goal.
     4.  **Next Action:**
         ```json
         {{
-          "type": "code",
-          "description": "Create a new file named `workspace/app.py` with the following complete content:\\n```python\\ndef say_hello():\\n    return \\"Hello, World!\\"\\n\\nif __name__ == \\"__main__\\":\\n    print(say_hello())\\n```"
+          "type": "finish",
+          "description": "Successfully created `workspace/app.py` with the 'Hello, World!' program as requested."
         }}
         ```
 
