@@ -8,7 +8,7 @@ from ..schemas import ProjectMetadata, Action, TaskState
 from .base_agent import BaseAgent
 
 PROMPT_TEMPLATE = """
-You are an expert AI Project Manager and Lead Developer. Your primary goal is to understand a user's request and create a simple, direct plan to achieve it. You must be meticulous, avoid making assumptions, and stick to the user's request.
+You are an expert AI Project Manager. Your task is to look at a user's goal and the current project state, and decide the single next action to take.
 
 **User's Overall Goal:**
 "{goal}"
@@ -23,48 +23,54 @@ You are an expert AI Project Manager and Lead Developer. Your primary goal is to
 Based on all the information above, decide on the single most effective next action.
 
 **Your Thought Process (Chain of Thought) - FOLLOW THIS STRICTLY:**
-1.  **Analyze the Goal:** What is the user's explicit request?
-2.  **Review History & Current State:** What was the last action taken? What was its result?
-3.  **Check for Completion:** Does the result of the last action fully satisfy the user's overall goal?
-    - If the goal was to create a file and the file was just created, the task is done.
-    - If the goal was to run a command and it executed successfully, the task is done.
-    - If the answer to this is "Yes", then your next action MUST be `finish`.
-4.  **Formulate a Simple, Direct Plan (if not complete):**
-    - If the task is not yet complete, what is the next logical, atomic step?
-    - **If the input is conversational, your action should be to chat.**
-    - If the user asks to create a file and write code in it, combine this into a single step.
-    - The plan should be a single, atomic action.
-5.  **Determine the Immediate Next Action:** Based on your plan, what is the very next, single, atomic action to take? This action must be self-contained and generate complete, runnable code if it's a code action. **DO NOT USE PLACEHOLDERS.**
+1.  **Analyze Goal:** What does the user want to do? (e.g., "Create and run a file to calculate Pi.")
+2.  **Check File Existence:** Does the file needed for the goal (e.g., `workspace/test.py`) exist in the "Project File Structure" above?
+3.  **Decide Next Action:**
+    * **If the file does NOT exist:** The next action MUST be `code` to create the file. Do not try to execute, test, or finish.
+    * **If the file DOES exist and was just created:** The next logical step is probably to `execute` it to see if it works.
+    * **If the file was just executed successfully:** The goal is likely complete. The next action should be `finish`.
+    * **If the user is just chatting:** The action should be `chat`.
+4.  **Verify Action:** Ensure your chosen action is logical based on the history and file list. For a `code` action, ensure you are implementing the user's *full* request (e.g., for "独自の円周率," implement an actual algorithm like Leibniz, don't use `math.pi`).
 
 **Available Action Types:**
-- `chat`: To respond to a conversational input. The description should be your response.
-- `code`: To create a new file or modify existing code. The description must contain the FULL, complete code to be written to the specified file.
-- `execute`: To run a command, like `python workspace/app.py`.
-- `finish`: When the user's goal has been fully achieved. The description should be a summary of what was done.
-- `clarify`: If you lack critical information to proceed.
-- `error`: If an unrecoverable error occurred.
+- `code`: To create or modify a file. The `description` **MUST** start with "Create a new file named `path/to/file.ext`..." or "Update the file named `path/to/file.ext`...", followed by the complete code.
+- `execute`: To run a command, like `python workspace/test.py`.
+- `finish`: When the user's goal has been fully achieved.
+- `chat`: To respond to a conversational input.
+- `clarify`: If you need more information.
+- `error`: If something is unrecoverable.
 
-**Example Scenario 1: Task Completion**
+**Example Scenario: Create and Run**
 
-* **Goal:** "Create a file named `app.py` and write a function that returns 'Hello, World!'."
-* **History:**
-    - AIDA Action: [code] Create a new file named `workspace/app.py` with the following complete content: ...
-    - AIDA Result: Applied changes to 1 file(s).
-* **Thought Process:**
-    1.  **Goal:** Create `workspace/app.py` with a "Hello, World!" program.
-    2.  **History:** The last action was to create this exact file, and the result was successful.
-    3.  **Completion Check:** The last action achieved the user's goal.
-    4.  **Next Action:**
+* **Goal:** "python形式で、test.pyに独自の円周率を求めるコードを書いて表示出来るようにしてください"
+* **File Structure (Turn 1):** `(empty)`
+* **History (Turn 1):** `(empty)`
+* **Thought Process (Turn 1):**
+    1. **Goal:** Create `workspace/test.py` with a Pi algorithm and run it.
+    2. **File Check:** `workspace/test.py` does not exist.
+    3. **Next Action:** Must be `code`.
+    4. **Verify:** The `code` action should implement a real algorithm.
         ```json
         {{
-          "type": "finish",
-          "description": "Successfully created `workspace/app.py` with the 'Hello, World!' program as requested."
+          "type": "code",
+          "description": "Create a new file named `workspace/test.py` with the following complete content:\\n```python\\ndef calculate_pi_leibniz(iterations: int) -> float:\\n    pi_sum = 0.0\\n    for i in range(iterations):\\n        term = ((-1) ** i) / (2 * i + 1)\\n        pi_sum += term\\n    return pi_sum * 4\\n\\nif __name__ == \\"__main__\\":\\n    pi_approximation = calculate_pi_leibniz(100000)\\n    print(f\\"Pi approximation (Leibniz): {{pi_approximation}}\\" )\\n```"
+        }}
+        ```
+* **File Structure (Turn 2):** `workspace/test.py`
+* **History (Turn 2):** "Last Action Result: Applied changes to 1 file(s)."
+* **Thought Process (Turn 2):**
+    1. **Goal:** Create and run the Pi script.
+    2. **File Check:** `workspace/test.py` now exists.
+    3. **Next Action:** The file was just created, so the next step is `execute`.
+        ```json
+        {{
+          "type": "execute",
+          "description": "python workspace/test.py"
         }}
         ```
 
 **Your Turn:**
 Now, analyze the current request: "{goal}"
-The file list is: {file_list}
 Provide the next action based on the strict thought process above.
 
 **Final Output:**
@@ -89,14 +95,18 @@ class PlanningAgent(BaseAgent):
         print(f"[PlanningAgent] Deciding next action...")
 
         file_list = metadata.files if hasattr(metadata, 'files') else []
-        file_list_str = "\n".join([f for f in file_list if not f.endswith('.DS_Store')]) # Filter out .DS_Store
+        # Make file paths relative to the workspace for the prompt
+        workspace_path_str = "workspace/"
+        display_files = [f.split(workspace_path_str, 1)[-1] for f in file_list if workspace_path_str in f]
+        file_list_str = "\n".join(display_files) if display_files else "(empty)"
+
 
         # Combine history and last result for a more complete context
         history_with_results = f"{history}\nLast Action Result: {last_result}"
 
         prompt = PROMPT_TEMPLATE.format(
             goal=goal,
-            file_list=file_list_str if file_list_str else "No files in the project yet.",
+            file_list=file_list_str,
             history_with_results=history_with_results,
         )
 
