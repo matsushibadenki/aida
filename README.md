@@ -28,6 +28,7 @@ ollama serve
 ollama pull gemma2:latest
 ```
 
+
 ### **2. インストール**
 
 1. **プロジェクトの準備**:
@@ -52,7 +53,7 @@ ollama pull gemma2:latest
 プロジェクトのルートディレクトリ（aidaディレクトリの親）で、以下のコマンドを実行します。
 
 ```bash
-python -m aida.main
+python main.py
 ```
 
 実行すると、`--- AIDA: AI-Driven Assistant ---`というメッセージと共にプロンプトが表示されます。
