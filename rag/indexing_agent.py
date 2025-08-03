@@ -6,8 +6,8 @@ import os
 from pathlib import Path
 from typing import List
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from .vector_store import VectorStore
-from ..schemas import CodeChange
+from aida.rag.vector_store import VectorStore
+from aida.schemas import CodeChange
 
 class IndexingAgent:
     """

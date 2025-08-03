@@ -3,7 +3,7 @@
 # role: Retrieves relevant context from the vector store based on a query.
 
 from typing import List
-from .vector_store import VectorStore
+from aida.rag.vector_store import VectorStore
 
 class RetrievalAgent:
     """
