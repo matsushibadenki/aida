@@ -6,10 +6,15 @@ import sys
 import signal
 import shutil
 from pathlib import Path
+
+# プロジェクトルートをPythonパスに追加して、aidaパッケージを認識させる
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root))
+
 from dependency_injector.wiring import inject, Provide
-from .container import Container
-from .orchestrator import Orchestrator
-from .schemas import ProjectMetadata
+from aida.container import Container
+from aida.orchestrator import Orchestrator
+from aida.schemas import ProjectMetadata
 
 # --- Path Definitions ---
 # All paths are now correctly defined relative to the 'aida' directory itself.
@@ -96,7 +101,8 @@ if __name__ == "__main__":
         setup_directories()
         
         container = Container()
-        container.wire(modules=[__name__])
+        # main があるモジュールを明示的に指定
+        container.wire(modules=[sys.modules[__name__]])
         main()
     except Exception as e:
         print(f"An error occurred during initialization: {e}")

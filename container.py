@@ -4,9 +4,9 @@
 
 from dependency_injector import containers, providers
 from pathlib import Path
-from .llm_client import LLMClient
-from .rag import VectorStore, RetrievalAgent, IndexingAgent
-from .agents import (
+from aida.llm_client import LLMClient
+from aida.rag import VectorStore, RetrievalAgent, IndexingAgent
+from aida.agents import (
     PlanningAgent,
     CodingAgent,
     AnalysisAgent,
@@ -15,7 +15,7 @@ from .agents import (
     SearchAgent,
     ExecutionAgent, # Import the new agent
 )
-from .orchestrator import Orchestrator
+from aida.orchestrator import Orchestrator
 
 class Container(containers.DeclarativeContainer):
     """

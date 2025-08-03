@@ -5,11 +5,11 @@
 import typing
 from pathlib import Path
 import shutil
-from .schemas import ProjectMetadata, Action, TaskState, CodeChange
-from .utils import sandbox_manager
+from aida.schemas import ProjectMetadata, Action, TaskState, CodeChange
+from aida.utils import sandbox_manager
 
 if typing.TYPE_CHECKING:
-    from .agents import (
+    from aida.agents import (
         PlanningAgent,
         CodingAgent,
         AnalysisAgent,
@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
         SearchAgent,
         ExecutionAgent,
     )
-    from .rag import IndexingAgent
+    from aida.rag import IndexingAgent
 
 
 class Orchestrator:
