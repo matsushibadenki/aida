@@ -4,11 +4,11 @@
 
 from typing import List
 from pathlib import Path
-from .base_agent import BaseAgent
-from ..schemas import CodeChange, ProjectMetadata, CodeChanges
-from ..llm_client import LLMClient
-from ..rag import RetrievalAgent
-from ..utils import clean_code
+from aida.agents.base_agent import BaseAgent
+from aida.schemas import CodeChange, ProjectMetadata, CodeChanges
+from aida.llm_client import LLMClient
+from aida.rag import RetrievalAgent
+from aida.utils import clean_code
 
 PROMPT_TEMPLATE = """
 You are an expert AI software engineer specializing in debugging. Your task is to analyze the provided test results, identify the root cause of the failure, and generate a code fix.

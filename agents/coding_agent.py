@@ -5,10 +5,10 @@
 import os
 from pathlib import Path
 from typing import List
-from .base_agent import BaseAgent
-from ..schemas import CodeChange, ProjectMetadata, CodeChanges
-from ..llm_client import LLMClient
-from ..rag import RetrievalAgent
+from aida.agents.base_agent import BaseAgent
+from aida.schemas import CodeChange, ProjectMetadata, CodeChanges
+from aida.llm_client import LLMClient
+from aida.rag import RetrievalAgent
 
 class CodingAgent(BaseAgent):
     def __init__(self, llm_client: LLMClient, retrieval_agent: RetrievalAgent):

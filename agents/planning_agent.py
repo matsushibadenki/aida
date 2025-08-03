@@ -3,9 +3,9 @@
 # role: Generates a description for a specific action based on the current task state.
 
 from typing import List
-from ..llm_client import LLMClient
-from ..schemas import ProjectMetadata, Action, TaskState
-from .base_agent import BaseAgent
+from aida.llm_client import LLMClient
+from aida.schemas import ProjectMetadata, Action, TaskState
+from aida.agents.base_agent import BaseAgent
 
 PROMPT_TEMPLATE = """
 You are an expert AI Project Manager. Your task is to look at a user's goal and the current project state, and decide the single next action to take.

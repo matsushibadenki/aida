@@ -3,8 +3,8 @@
 # role: Analyzes the project structure using ProjectAnalyzer.
 
 from pathlib import Path
-from ..analysis import ProjectAnalyzer
-from ..schemas import ProjectMetadata
+from aida.analysis import ProjectAnalyzer
+from aida.schemas import ProjectMetadata
 
 class AnalysisAgent:
     """
