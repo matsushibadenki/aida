@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from typing import List
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from chromadb.api.types import Metadata
 from aida.rag.vector_store import VectorStore
 from aida.schemas import CodeChange
 
@@ -49,8 +50,8 @@ class IndexingAgent:
         """
         Helper method to process a list of files and add them to the vector store.
         """
-        all_texts = []
-        all_metadatas = []
+        all_texts: List[str] = []
+        all_metadatas: List[Metadata] = []
 
         for file_path_str in file_paths:
             full_path = Path(project_root) / file_path_str
@@ -62,7 +63,7 @@ class IndexingAgent:
                     content = f.read()
                 
                 chunks = self.text_splitter.split_text(content)
-                metadatas = [{"source": file_path_str} for _ in chunks]
+                metadatas: List[Metadata] = [{"source": file_path_str} for _ in chunks]
                 
                 all_texts.extend(chunks)
                 all_metadatas.extend(metadatas)

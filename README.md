@@ -26,6 +26,7 @@ ollama serve
 
 # 別のターミナルを開き、モデルをダウンロード
 ollama pull gemma2:latest
+ollama pull nomic-embed-text:latest 
 ```
 
 

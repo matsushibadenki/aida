@@ -31,6 +31,13 @@ class Action(BaseModel):
     description: str = Field(description="A detailed description for the action, e.g., a search query, a coding instruction, or a command to run.")
 
 
+class Plan(BaseModel):
+    """
+    Represents a sequence of actions to be executed to complete a task.
+    """
+    steps: List[Action] = Field(description="A list of actions to be executed in order.")
+
+
 class CodeChange(BaseModel):
     """
     Represents a single file change, including the path and new content.

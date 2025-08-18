@@ -29,12 +29,12 @@ class LLMClient:
         if not all([provider, model, host]):
             raise ValueError("LLM config must include 'provider', 'model', and 'host'.")
 
-        if provider.lower() != "ollama":
+        if not isinstance(provider, str) or provider.lower() != "ollama":
             raise NotImplementedError(f"Provider '{provider}' is not supported yet.")
         
         self.llm = ChatOllama(
-            model=model,
-            base_url=host,
+            model=str(model),
+            base_url=str(host),
         )
         print(f"LLMClient initialized with provider: {provider}, model: {model}, host: {host}")
 
@@ -43,12 +43,13 @@ class LLMClient:
         Generates a structured JSON response by parsing the raw text output from the LLM.
         """
         try:
-            raw_response = self.llm.invoke(prompt).content
-            json_str = clean_json_response(raw_response)
+            raw_response_content = self.llm.invoke(prompt).content
+            assert isinstance(raw_response_content, str), "LLM response content should be a string"
+            json_str = clean_json_response(raw_response_content)
             
             if not json_str:
                 print("[LLMClient] Error: No valid JSON found in the LLM response.")
-                print(f"--- Raw Response ---\n{raw_response}\n--------------------")
+                print(f"--- Raw Response ---\n{raw_response_content}\n--------------------")
                 return None
             
             parsed_json = json.loads(json_str)
@@ -72,7 +73,9 @@ class LLMClient:
         """
         try:
             response = self.llm.invoke(prompt)
-            return response.content if hasattr(response, 'content') else ""
+            content = response.content if hasattr(response, 'content') else ""
+            assert isinstance(content, str)
+            return content
         except Exception as e:
             print(f"[LLMClient] Error generating text: {e}")
             return ""

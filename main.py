@@ -27,24 +27,41 @@ CACHE_DIRS = [
 
 def setup_directories():
     """
-    Ensures that the workspace directory exists and clears cache directories.
-    This is called once at the very beginning of the application startup.
+    Ensures that the workspace directory exists and clears cache directories
+    after user confirmation.
     """
     # Ensure the workspace directory exists.
     if not WORKSPACE_DIR.exists():
         print(f"[Main] Workspace directory not found. Creating at: {WORKSPACE_DIR}")
         WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
     
-    # Clean up cache directories.
-    print("\n--- Cleaning up cache directories ---")
-    for directory in CACHE_DIRS:
-        if directory.exists():
-            try:
-                shutil.rmtree(directory)
-                print(f"[Cleanup] Removed: {directory}")
-            except OSError as e:
-                print(f"Error removing directory {directory}: {e}")
-    print("--- Cleanup Complete ---")
+    # --- Confirmation before cleaning up cache ---
+    dirs_to_clean = [d for d in CACHE_DIRS if d.exists()]
+    if dirs_to_clean:
+        print("\n--- Cache Cleanup ---")
+        print("The following cache/sandbox directories will be cleared:")
+        for directory in dirs_to_clean:
+            print(f"- {directory}")
+        
+        try:
+            confirm = input("Do you want to proceed with cleanup? (y/n): ").lower()
+            if confirm == 'y':
+                print("--- Cleaning up cache directories ---")
+                for directory in dirs_to_clean:
+                    try:
+                        shutil.rmtree(directory)
+                        print(f"[Cleanup] Removed: {directory}")
+                    except OSError as e:
+                        print(f"Error removing directory {directory}: {e}")
+                print("--- Cleanup Complete ---")
+            else:
+                print("--- Cleanup Skipped ---")
+        except (KeyboardInterrupt, EOFError):
+             print("\nCleanup cancelled. Exiting.")
+             sys.exit(0)
+    else:
+        print("\n--- No cache directories to clean. ---")
+
 
 def signal_handler(sig, frame):
     """

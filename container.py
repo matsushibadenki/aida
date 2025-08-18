@@ -4,6 +4,8 @@
 
 from dependency_injector import containers, providers
 from pathlib import Path
+# 修正: ChromaDBネイティブのOllama埋め込み関数をインポート
+from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
 from aida.llm_client import LLMClient
 from aida.rag import VectorStore, RetrievalAgent, IndexingAgent
 from aida.agents import (
@@ -13,7 +15,7 @@ from aida.agents import (
     TestingAgent,
     DebuggingAgent,
     SearchAgent,
-    ExecutionAgent, # Import the new agent
+    ExecutionAgent,
 )
 from aida.orchestrator import Orchestrator
 
@@ -34,9 +36,19 @@ class Container(containers.DeclarativeContainer):
     )
 
     # --- RAG Components ---
-    # Path is now correctly defined within the 'aida' directory.
+    # 修正: ChromaDBのOllamaEmbeddingFunctionを使用して、互換性の問題を解決
+    embedding_function = providers.Singleton(
+        OllamaEmbeddingFunction,
+        model_name=config.rag.embedding_model,
+        url=config.llm.host,
+    )
+
     vector_store_path = providers.Object(str(Path(__file__).parent / "aida_vectordb"))
-    vector_store = providers.Singleton(VectorStore, db_path=vector_store_path)
+    vector_store = providers.Singleton(
+        VectorStore,
+        db_path=vector_store_path,
+        embedding_function=embedding_function, # Inject the embedding function
+    )
     
     retrieval_agent = providers.Factory(
         RetrievalAgent,
@@ -53,8 +65,8 @@ class Container(containers.DeclarativeContainer):
     # --- Core Agents ---
     analysis_agent = providers.Factory(AnalysisAgent)
     testing_agent = providers.Factory(TestingAgent)
-    search_agent = providers.Factory(SearchAgent) # Add SearchAgent
-    execution_agent = providers.Factory(ExecutionAgent) # Add ExecutionAgent
+    search_agent = providers.Factory(SearchAgent)
+    execution_agent = providers.Factory(ExecutionAgent)
 
     debugging_agent = providers.Factory(
         DebuggingAgent,
@@ -82,7 +94,7 @@ class Container(containers.DeclarativeContainer):
         indexing_agent=indexing_agent,
         testing_agent=testing_agent,
         debugging_agent=debugging_agent,
-        search_agent=search_agent, # Inject SearchAgent
-        execution_agent=execution_agent, # Inject ExecutionAgent
+        search_agent=search_agent,
+        execution_agent=execution_agent,
         max_retries=config.max_retries
     )

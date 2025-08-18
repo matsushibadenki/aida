@@ -18,9 +18,10 @@ class CodingAgent(BaseAgent):
     def run(self, task: str, metadata: ProjectMetadata) -> list[CodeChange]:
         print(f"[CodingAgent] Executing task: '{task}'")
         
-        context = self.retrieval_agent.run(task)
+        context_list = self.retrieval_agent.run(task)
+        context_str = "\n---\n".join(context_list)
         
-        prompt = self._create_prompt(task, metadata, context)
+        prompt = self._create_prompt(task, metadata, context_str)
         
         response_model = self.llm_client.generate_json(prompt, output_schema=CodeChanges)
         print("[CodingAgent] Code generated successfully.")

@@ -8,6 +8,7 @@ llm:
   host: "http://localhost:11434"
 
 rag:
+  embedding_model: "nomic-embed-text:latest" # Ollamaで実行する埋め込みモデル名
   chunk_size: 1000
   chunk_overlap: 200
 

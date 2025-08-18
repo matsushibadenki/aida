@@ -3,24 +3,32 @@
 # role: Manages the vector database for document storage and retrieval.
 
 import chromadb
-from chromadb.utils import embedding_functions
+from chromadb.api.types import EmbeddingFunction, Metadata
 from typing import List, Dict, Any
 from pathlib import Path
 
 class VectorStore:
     """
     This class manages the ChromaDB vector store.
+    It now accepts a custom embedding function.
     """
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, embedding_function: EmbeddingFunction):
+        """
+        Initializes the VectorStore.
+
+        Args:
+            db_path: The path to the database directory.
+            embedding_function: The function or object to use for generating embeddings.
+        """
         db_directory = Path(db_path)
         self.client = chromadb.PersistentClient(path=str(db_directory))
-        self.embedding_function = embedding_functions.DefaultEmbeddingFunction()
+        self.embedding_function = embedding_function
         self.collection = self.client.get_or_create_collection(
             name="aida_collection",
             embedding_function=self.embedding_function
         )
 
-    def add(self, documents: List[str], metadatas: List[Dict[str, Any]]):
+    def add(self, documents: List[str], metadatas: List[Metadata]):
         """
         Adds documents to the vector store.
         """
