@@ -8,7 +8,7 @@ from aida.schemas import ProjectMetadata, Action, Plan
 from aida.agents.base_agent import BaseAgent
 
 PROMPT_TEMPLATE = """
-You are an expert AI project planner. Your job is to create a step-by-step plan in JSON format to achieve the user's goal.
+You are an expert AI project planner. Your job is to create a step-by-step plan in JSON format. The descriptions in your plan should be high-level instructions, NOT code.
 
 **User's Goal:**
 "{goal}"
@@ -17,23 +17,27 @@ You are an expert AI project planner. Your job is to create a step-by-step plan 
 {file_list}
 
 **Instructions:**
-1.  Analyze the user's goal and the list of existing files.
-2.  Create a logical sequence of steps (`code`, `test`, `execute`) to achieve the goal.
-3.  Do not include steps to create files that already exist.
-4.  The final step in the plan must always be a `finish` action.
-5.  Your output MUST be a JSON object with a single key "steps", which contains a list of actions. Each action must have "type" and "description" keys.
+1.  Analyze the user's goal and existing files.
+2.  Create a logical sequence of steps (`code`, `test`, `execute`).
+3.  **IMPORTANT:** Descriptions for `code` actions should state WHAT to create (e.g., "Create a main file with an add function"), not the code itself.
+4.  Do not include steps for files that already exist.
+5.  The final step must be `finish`.
+6.  Your output MUST be a JSON object with a "steps" key, containing a list of actions. Each action must have "type" and "description" keys.
 
 **Example:**
-* **Goal:** "Create a test for `math_util.py` and run it."
-* **Existing Files:**
-`workspace/math_util.py`
+* **Goal:** "Create `math_util.py` with an `add` function, create a test for it, and run the tests."
+* **Existing Files:** (empty)
 * **Correct JSON Output:**
 ```json
 {{
   "steps": [
     {{
       "type": "code",
-      "description": "Create the test file `workspace/test_math_util.py`."
+      "description": "Create the main file `workspace/math_util.py` with an `add` function."
+    }},
+    {{
+      "type": "code",
+      "description": "Create the test file `workspace/test_math_util.py` to test the `add` function."
     }},
     {{
       "type": "test",
