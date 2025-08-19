@@ -55,11 +55,10 @@ class DebuggingAgent(BaseAgent):
         sandbox_path: str,
         test_output: str,
         metadata: ProjectMetadata,
-    ) -> list[CodeChange] | None:
+    ) -> list[CodeChange]:
         print("[DebuggingAgent] Analyzing test failures to generate a fix...")
         
         file_contents = ""
-        # 修正：関連性の高いファイルのみをコンテキストに含めるように変更
         relevant_files = self._find_relevant_files(test_output, metadata.files)
 
         for file_path_str in relevant_files:
@@ -82,7 +81,7 @@ class DebuggingAgent(BaseAgent):
         
         if not response_model or not response_model.changes:
             print("[DebuggingAgent] Could not generate a fix.")
-            return None
+            return []
 
         response = response_model.changes
         for change in response:
@@ -97,21 +96,16 @@ class DebuggingAgent(BaseAgent):
         Parses the test output to find file paths mentioned in tracebacks.
         """
         import re
-        # A simple regex to find file paths in Python tracebacks
-        # Example: File "/path/to/your/project/aida/workspace/test_app.py", line 5, in test_hello
         file_path_pattern = re.compile(r'File "([^"]+)", line \d+')
         
         mentioned_files = set(file_path_pattern.findall(test_output))
         
-        # We need to find the relative path from the project root
         relevant_files = set()
         for path in mentioned_files:
             for project_file in all_files:
                 if path.endswith(project_file):
                     relevant_files.add(project_file)
         
-        # If no files are found in the traceback (e.g., no tests collected),
-        # we might want to return all files as a fallback.
         if not relevant_files:
             return all_files
             

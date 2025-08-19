@@ -8,7 +8,7 @@ from aida.schemas import ProjectMetadata, Action, Plan
 from aida.agents.base_agent import BaseAgent
 
 PROMPT_TEMPLATE = """
-You are an expert AI project planner. Your job is to create a step-by-step plan in JSON format. The descriptions in your plan should be high-level instructions, NOT code.
+You are an expert AI project planner. Your job is to create a step-by-step plan in JSON format.
 
 **User's Goal:**
 "{goal}"
@@ -20,20 +20,44 @@ You are an expert AI project planner. Your job is to create a step-by-step plan 
 {history}
 
 **Instructions:**
-1.  Analyze the user's goal, existing files, and conversation history.
-2.  **If the goal is ambiguous or lacks detail, your FIRST step MUST be a `clarify` action to ask the user for more information.**
-3.  Create a logical sequence of steps. Available action types are `chat`, `code`, `lint`, `test`, `execute`, `web_search`, `git`, `dependency`, `clarify`.
-4.  **After any `code` action that creates or modifies Python files, you should add a `lint` action to check the code quality.**
-5.  **IMPORTANT:** Descriptions for `code` actions should state WHAT to create (e.g., "Create a main file with an add function"), not the code itself.
-6.  Descriptions for `execute` actions MUST be a valid shell command.
-7.  Descriptions for `git` actions MUST be a valid git command (e.g., "commit -am 'Refactor code'").
-8.  Descriptions for `dependency` actions MUST be a valid pip command (e.g., "install requests").
-9.  The final step must be `finish`.
-10. Your output MUST be a JSON object with a "steps" key, containing a list of actions.
+1.  Analyze the user's goal, files, and history.
+2.  **For high-level goals like "build a web app", the FIRST step should be `design` to outline the file structure.** The description for the `design` action should be the user's high-level goal.
+3.  **After a `design` action, your next step should be a `clarify` action to ask the user for approval before proceeding with coding.**
+4.  If the user has already approved a design (visible in the history), create `code` steps to implement it.
+5.  After any `code` action, add a `lint` action, followed by a `test` action.
+6.  Use `refactor` when the user asks to improve existing code. The description should be the file path.
+7.  Your output MUST be a JSON object with a "steps" key. The final step must always be `finish`.
 
-**Example: Code, Lint, and Test**
-* **Goal:** "Create a simple flask app in `app.py` and a test for it."
+**Example: High-Level Design Request**
+* **Goal:** "Build a simple Flask API."
 * **Existing Files:** (empty)
+* **History:** (empty)
+* **Correct JSON Output:**
+```json
+{{
+  "steps": [
+    {{
+      "type": "design",
+      "description": "Build a simple Flask API."
+    }},
+    {{
+      "type": "clarify",
+      "description": "I have designed the architecture for the Flask API. Should I proceed with generating the code for the proposed files?"
+    }}
+  ]
+}}
+```
+
+**Example: Implementing an Approved Design**
+* **Goal:** "The user approved the plan. Proceed with the implementation."
+* **Existing Files:** (empty)
+* **History:** "USER: Build a simple Flask API.
+AIDA_ACTION: [design] Build a simple Flask API.
+AIDA_DESIGN:
+- app.py: The main Flask application file.
+- test_app.py: Tests for the Flask application.
+AIDA_ACTION: [clarify] I have designed the architecture...
+USER_RESPONSE: yes"
 * **Correct JSON Output:**
 ```json
 {{
@@ -44,7 +68,7 @@ You are an expert AI project planner. Your job is to create a step-by-step plan 
     }},
     {{
       "type": "code",
-      "description": "Create the main flask application file `workspace/app.py`."
+      "description": "Create the main flask application file `workspace/app.py` as designed."
     }},
     {{
       "type": "lint",
@@ -53,10 +77,6 @@ You are an expert AI project planner. Your job is to create a step-by-step plan 
     {{
       "type": "code",
       "description": "Create the test file `workspace/test_app.py` for the flask app."
-    }},
-    {{
-      "type": "lint",
-      "description": "Run the linter on the new test code."
     }},
     {{
       "type": "test",

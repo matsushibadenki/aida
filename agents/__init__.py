@@ -12,7 +12,9 @@ from .execution_agent import ExecutionAgent
 from .web_search_agent import WebSearchAgent
 from .git_agent import GitAgent
 from .dependency_agent import DependencyAgent
-from .linting_agent import LintingAgent # Import new agent
+from .linting_agent import LintingAgent
+from .refactoring_agent import RefactoringAgent
+from .architecture_agent import ArchitectureAgent # Import new agent
 
 
 __all__ = [
@@ -26,5 +28,7 @@ __all__ = [
     "WebSearchAgent",
     "GitAgent",
     "DependencyAgent",
-    "LintingAgent", # Export new agent
+    "LintingAgent",
+    "RefactoringAgent",
+    "ArchitectureAgent", # Export new agent
 ]
