@@ -31,6 +31,12 @@ CACHE_DIRS = [
     AIDA_ROOT / "aida_sandbox",
 ]
 
+# ◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️↓修正開始◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️
+# sys.pathにworkspaceディレクトリを追加
+sys.path.insert(0, str(WORKSPACE_DIR))
+# ◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️↑修正終わり◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️◾️
+
+
 def setup_directories():
     """
     Ensures that the workspace directory exists and clears cache directories
