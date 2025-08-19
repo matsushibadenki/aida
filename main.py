@@ -6,6 +6,12 @@ import sys
 import signal
 import shutil
 from pathlib import Path
+from dotenv import load_dotenv # Import load_dotenv
+
+# Load environment variables from .env file at the project root
+project_root_for_env = Path(__file__).resolve().parent.parent
+load_dotenv(dotenv_path=project_root_for_env / ".env")
+
 
 # プロジェクトルートをPythonパスに追加して、aidaパッケージを認識させる
 project_root = Path(__file__).resolve().parent.parent

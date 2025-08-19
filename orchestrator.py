@@ -18,6 +18,7 @@ if typing.TYPE_CHECKING:
         DebuggingAgent,
         SearchAgent,
         ExecutionAgent,
+        WebSearchAgent, # WebSearchAgentをインポート
     )
     from aida.rag import IndexingAgent
 
@@ -37,6 +38,7 @@ class Orchestrator:
         debugging_agent: "DebuggingAgent",
         search_agent: "SearchAgent",
         execution_agent: "ExecutionAgent",
+        web_search_agent: "WebSearchAgent", # WebSearchAgentを受け取る
         max_retries: int,
     ):
         self.planning_agent = planning_agent
@@ -47,6 +49,7 @@ class Orchestrator:
         self.debugging_agent = debugging_agent
         self.search_agent = search_agent
         self.execution_agent = execution_agent
+        self.web_search_agent = web_search_agent # WebSearchAgentを初期化
         self.max_retries = max_retries
         print("Orchestrator initialized with all agents.")
 
@@ -65,7 +68,7 @@ class Orchestrator:
 
     def run_task(self, prompt: str, metadata: ProjectMetadata, project_path: str):
         """
-        Generates a plan and executes it step-by-step.
+        Generates a plan and executes it step-by-step, including a debugging loop.
         """
         print(f"\n--- Running Task: {prompt} ---")
 
@@ -77,6 +80,7 @@ class Orchestrator:
 
         last_code_changes: list[CodeChange] = []
         task_successful = False
+        goal = prompt # デバッグループ用に元のプロンプトを保持
 
         with sandbox_manager(project_path) as sandbox_path:
             current_metadata = metadata
@@ -114,13 +118,54 @@ class Orchestrator:
                         break
 
                 elif action.type == "test":
-                    tests_passed, test_output = self.testing_agent.run_tests(sandbox_path)
-                    print(test_output)
+                    # --- Start of Self-Correction Loop ---
+                    for attempt in range(self.max_retries):
+                        tests_passed, test_output = self.testing_agent.run_tests(sandbox_path)
+                        print(test_output)
+                        
+                        if tests_passed:
+                            print("--- ✅ Tests Passed. Continuing with the plan. ---")
+                            break # ループを抜けて次のステップへ
+                        
+                        print(f"--- ❌ Tests Failed. Attempt {attempt + 1}/{self.max_retries}. Entering debugging mode... ---")
+
+                        if attempt + 1 == self.max_retries:
+                            print("--- ❌ Maximum retry limit reached. Halting task. ---")
+                            task_successful = False
+                            # このbreakはfor-elseのelseブロックをスキップさせる
+                            break
+
+                        # デバッグエージェントを実行して修正案を取得
+                        fix_changes = self.debugging_agent.run(
+                            goal=goal,
+                            sandbox_path=sandbox_path,
+                            test_output=test_output,
+                            metadata=current_metadata
+                        )
+
+                        if not fix_changes:
+                            print("--- ❌ Debugging agent could not generate a fix. Halting task. ---")
+                            task_successful = False
+                            break # for-elseのelseをスキップ
+
+                        # 修正案を適用
+                        print("[Orchestrator] Applying debug fix to sandbox...")
+                        self.coding_agent.apply_code_to_sandbox(fix_changes, sandbox_path)
+                        last_code_changes.extend(fix_changes)
+                        print("[Orchestrator] Re-running tests with the fix...")
+                        current_metadata = self.analysis_agent.run(project_root=sandbox_path) # メタデータを更新
                     
-                    if not tests_passed:
-                        print("--- ❌ Tests Failed. Stopping task. Debugging is not yet implemented in this loop. ---")
-                        # Here you could insert the debugging loop if needed
-                        break
+                    else: # for ループが break せずに完了した場合 (リトライ上限に達した場合)
+                        print(f"\n--- ❌ Task Failed: Tests did not pass after {self.max_retries} attempts. ---")
+                        task_successful = False
+                        return # run_task を終了
+                    # --- End of Self-Correction Loop ---
+
+                elif action.type == "web_search":
+                    search_results = self.web_search_agent.run(action.description)
+                    print("--- Web Search Results ---")
+                    print(search_results)
+                    print("------------------------")
                 
                 elif action.type == "chat":
                     # Extract file path from description using regex

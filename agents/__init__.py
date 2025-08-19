@@ -8,7 +8,8 @@ from .debugging_agent import DebuggingAgent
 from .planning_agent import PlanningAgent
 from .search_agent import SearchAgent
 from .testing_agent import TestingAgent
-from .execution_agent import ExecutionAgent # Import new agent
+from .execution_agent import ExecutionAgent
+from .web_search_agent import WebSearchAgent # Import new agent
 
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     "PlanningAgent",
     "SearchAgent",
     "TestingAgent",
-    "ExecutionAgent", # Export new agent
+    "ExecutionAgent",
+    "WebSearchAgent", # Export new agent
 ]

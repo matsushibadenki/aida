@@ -14,6 +14,7 @@ class TaskState(Enum):
     PLANNING = "PLANNING"
     CHATTING = "CHATTING"
     SEARCHING = "SEARCHING"
+    WEB_SEARCHING = "WEB_SEARCHING" # 追加
     CODING = "CODING"
     TESTING = "TESTING"
     EXECUTING = "EXECUTING"
@@ -27,7 +28,7 @@ class Action(BaseModel):
     Represents a single action to be taken by the orchestrator.
     The planning agent generates this.
     """
-    type: str = Field(description="The type of action to take: 'chat', 'search', 'code', 'execute', 'test', 'finish', 'clarify', 'error'.")
+    type: str = Field(description="The type of action to take: 'chat', 'search', 'web_search', 'code', 'execute', 'test', 'finish', 'clarify', 'error'.") # 'web_search' を追加
     description: str = Field(description="A detailed description for the action, e.g., a search query, a coding instruction, or a command to run.")
 
 

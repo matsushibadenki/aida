@@ -16,6 +16,7 @@ from aida.agents import (
     DebuggingAgent,
     SearchAgent,
     ExecutionAgent,
+    WebSearchAgent, # WebSearchAgentをインポート
 )
 from aida.orchestrator import Orchestrator
 
@@ -67,6 +68,7 @@ class Container(containers.DeclarativeContainer):
     testing_agent = providers.Factory(TestingAgent)
     search_agent = providers.Factory(SearchAgent)
     execution_agent = providers.Factory(ExecutionAgent)
+    web_search_agent = providers.Factory(WebSearchAgent) # WebSearchAgentをコンテナに追加
 
     debugging_agent = providers.Factory(
         DebuggingAgent,
@@ -96,5 +98,6 @@ class Container(containers.DeclarativeContainer):
         debugging_agent=debugging_agent,
         search_agent=search_agent,
         execution_agent=execution_agent,
+        web_search_agent=web_search_agent, # WebSearchAgentをOrchestratorに注入
         max_retries=config.max_retries
     )

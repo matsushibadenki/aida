@@ -12,4 +12,8 @@ rag:
   chunk_size: 1000
   chunk_overlap: 200
 
+web_search:
+  google_api_key: ""
+  google_cse_id: ""
+  
 max_retries: 5

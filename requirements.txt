@@ -9,3 +9,4 @@ pyyaml
 dependency-injector
 langchain-text-splitters
 langchain-ollama
+google-api-python-client
