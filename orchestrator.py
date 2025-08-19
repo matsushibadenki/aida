@@ -18,7 +18,8 @@ if typing.TYPE_CHECKING:
         DebuggingAgent,
         SearchAgent,
         ExecutionAgent,
-        WebSearchAgent, # WebSearchAgentをインポート
+        WebSearchAgent,
+        GitAgent, # GitAgentをインポート
     )
     from aida.rag import IndexingAgent
 
@@ -38,7 +39,8 @@ class Orchestrator:
         debugging_agent: "DebuggingAgent",
         search_agent: "SearchAgent",
         execution_agent: "ExecutionAgent",
-        web_search_agent: "WebSearchAgent", # WebSearchAgentを受け取る
+        web_search_agent: "WebSearchAgent",
+        git_agent: "GitAgent", # GitAgentを受け取る
         max_retries: int,
     ):
         self.planning_agent = planning_agent
@@ -49,7 +51,8 @@ class Orchestrator:
         self.debugging_agent = debugging_agent
         self.search_agent = search_agent
         self.execution_agent = execution_agent
-        self.web_search_agent = web_search_agent # WebSearchAgentを初期化
+        self.web_search_agent = web_search_agent
+        self.git_agent = git_agent # GitAgentを初期化
         self.max_retries = max_retries
         print("Orchestrator initialized with all agents.")
 
@@ -115,6 +118,13 @@ class Orchestrator:
                     print(output)
                     if not success:
                         print(f"--- ❌ Execution Failed. Stopping task. ---")
+                        break
+                
+                elif action.type == "git":
+                    success, output = self.git_agent.run(sandbox_path, action.description)
+                    print(output)
+                    if not success:
+                        print(f"--- ❌ Git command Failed. Stopping task. ---")
                         break
 
                 elif action.type == "test":
