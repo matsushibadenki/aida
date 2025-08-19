@@ -1,15 +1,15 @@
 # **AIDA: AI-Driven Assistant**
 
-AIDAは、対話形式でソフトウェア開発タスクを自動化するAIアシスタントです。ユーザーからの自然言語による指示に基づき、プロジェクトの分析、開発計画の立案、コーディング、検索、実行、そしてテストまでを自律的に実行します。
+AIDAは、対話形式でソフトウェア開発タスクを自動化する、自律型AIアシスタントです。ユーザーからの自然言語による指示に基づき、プロジェクトの設計、計画、コーディング、テスト、デバッグ、リファクタリングまでを自律的に実行します。
 
 ## **🚀 特徴**
 
-* **対話型インターフェース**: チャット形式で開発タスクを依頼できます  
-* **自律的なタスク実行**: ユーザーの指示を解釈し、必要なアクション（ファイル検索、コード編集、コマンド実行、テスト）を自ら計画し、実行します  
-* **動的なワークフロー**: 固定的な手順ではなく、タスクの内容に応じて「分析 → 計画 → 実行 → 検証」のサイクルを柔軟に繰り返します  
-* **LangChain統合**: LLMとのやり取りを構造化し、安定した計画やコードの生成を実現します  
-* **クリーンなアーキテクチャ**: DIコンテナ（dependency-injector）を導入し、保守性の高い設計になっています  
-* **安全なサンドボックス環境**: コードの実行やファイル変更は、まず隔離されたサンドボックス環境で行われ、タスク完了後に実際のワークスペースに反映されるため安全です
+* **自律的なタスク実行**: ユーザーの指示を解釈し、必要なアクション（設計、コーディング、テスト、リント、リファクタリング、コマンド実行など）を自ら計画し、実行します。  
+* **自己修正・改善ループ**: テストや静的解析（Lint）で問題が発見された場合、自動的にデバッグエージェントと連携し、コードを修正します。  
+* **対話による協調**: ユーザーの指示が曖昧な場合は質問で意図を確認し、大規模な開発の前にはアーキテクチャを設計・提案して承認を求めます。  
+* **長期記憶**: 対話の履歴を記憶し、将来のタスク計画に活かします。  
+* **安全なサンドボックス環境**: コードの実行やファイル変更は、まず隔離されたサンドボックス環境で行われ、タスク完了後に実際のワークスペースに反映されるため安全です。  
+* **クリーンなアーキテクチャ**: DIコンテナ（dependency-injector）を導入し、保守性と拡張性の高い設計になっています。
 
 ## **🏁 利用開始までの流れ**
 
@@ -25,7 +25,7 @@ ollama serve
 
 \# 別のターミナルを開き、モデルをダウンロード  
 ollama pull gemma3:latest  
-ollama pull nomic-embed-text:latest 
+ollama pull nomic-embed-text:latest
 
 ### **2\. インストール**
 
@@ -49,179 +49,148 @@ python main.py
 
 実行すると、--- AIDA: AI-Driven Assistant \---というメッセージと共にプロンプトが表示されます。
 
-### **4\. 使い方**
-
-Prompt \> が表示されたら、開発タスクを入力してください。
-
-**例:**
-
-* aida/workspace/app.pyに「def get\_status(): return "ok"」という関数を追加してください  
-* project\_analyzer.py というファイルがどこにあるか探して  
-* workspace/app.py を実行して  
-* math\_utils.py のバグを修正するためのテストを作成して、そのテストを実行して
-
-システムが計画を立て、必要なアクション（コード生成、コマンド実行など）を順番に実行します。変更が完了すると、結果がワークスペースに反映されます。
-
 ## **📁 プロジェクト構造**
 
 .  
 ├── aida/  
 │   ├── agents/         \# 各機能担当のエージェント  
-│   │   ├── analysis\_agent.py  
+│   │   ├── architecture\_agent.py  
 │   │   ├── coding\_agent.py  
 │   │   ├── debugging\_agent.py  
-│   │   ├── execution\_agent.py  \# コマンド実行  
+│   │   ├── dependency\_agent.py  
+│   │   ├── execution\_agent.py  
+│   │   ├── git\_agent.py  
+│   │   ├── linting\_agent.py  
 │   │   ├── planning\_agent.py  
-│   │   ├── search\_agent.py  
+│   │   ├── refactoring\_agent.py  
 │   │   └── testing\_agent.py  
 │   ├── analysis/       \# プロジェクト分析関連  
 │   ├── rag/            \# RAG (Retrieval-Augmented Generation) 関連  
+│   ├── services/       \# 履歴管理などの共通サービス  
 │   ├── workspace/      \# AIDAが作業する対象のプロジェクト  
-│   ├── \_\_init\_\_.py  
 │   ├── config.yml      \# 設定ファイル  
 │   ├── container.py    \# DIコンテナ  
 │   ├── llm\_client.py   \# LLM通信クライアント  
 │   ├── main.py         \# アプリケーションのエントリーポイント  
 │   ├── orchestrator.py \# 全体を統括するオーケストレーター  
-│   ├── schemas.py      \# データ構造の定義  
-│   └── utils.py        \# 共通関数  
+│   └── schemas.py      \# データ構造の定義  
 └── requirements.txt    \# 依存ライブラリ
 
 ## **📄 詳細設計仕様書**
 
 ### **1\. アーキテクチャ概要**
 
-本システムは、**エージェントベースアーキテクチャ**を採用しています。中心的な役割を担うOrchestratorが、ユーザーの指示に基づき、各専門分野（計画、コーディング、検索、実行など）を担当するAgent群を協調させてタスクを遂行します。
+本システムは、**エージェントベースアーキテクチャ**を採用しています。中心的な役割を担うOrchestratorが、ユーザーの指示に基づき、各専門分野を担当するAgent群を協調させてタスクを遂行します。クラス間の依存関係は、**DI（Dependency Injection）コンテナ**によって管理されており、各コンポーネントの疎結合性とテスト容易性を高めています。
 
-クラス間の依存関係は、**DI（Dependency Injection）コンテナ**によって管理されており、各コンポーネントの疎結合性とテスト容易性を高めています。
-
-graph TD  
-    subgraph "User Interface"  
-        UI\["main.py\<br\>Chat Interface"\]  
+```Mermaid
+graph TD
+    subgraph "User Interface"
+        UI["main.py Chat Interface"]
     end
 
-    subgraph "Core System"  
-        Container\["DI Container\<br\>(container.py)"\]  
-        Orchestrator\["Orchestrator"\]  
+    subgraph "Core System"
+        Container["DI Container container.py"]
+        Orchestrator["Orchestrator"]
     end
 
-    subgraph "Agents"  
-        Planning\["PlanningAgent"\]  
-        Coding\["CodingAgent"\]  
-        Search\["SearchAgent"\]  
-        Execution\["ExecutionAgent"\]  
-        Testing\["TestingAgent"\]  
-        Debugging\["DebuggingAgent"\]  
-        Analysis\["AnalysisAgent"\]  
-    end  
-          
-    subgraph "LLM Layer"  
-        LLMClient\["LLMClient"\]  
-        Ollama\["Ollama\<br\>gemma2:latest"\]  
+    subgraph "Agents"
+        Planning["PlanningAgent"]
+        Architecture["ArchitectureAgent"]
+        Coding["CodingAgent"]
+        Refactoring["RefactoringAgent"]
+        Linting["LintingAgent"]
+        Testing["TestingAgent"]
+        Debugging["DebuggingAgent"]
+        Execution["ExecutionAgent"]
+        Dependency["DependencyAgent"]
+        Git["GitAgent"]
+        WebSearch["WebSearchAgent"]
     end
 
-    UI \--\> Orchestrator  
-    Container \-- "Wires up" \--\> Orchestrator  
-    Container \-- "Injects" \--\> Planning  
-    Container \-- "Injects" \--\> Coding  
-    Container \-- "Injects" \--\> Search  
-    Container \-- "Injects" \--\> Execution  
-    Container \-- "Injects" \--\> Testing  
-    Container \-- "Injects" \--\> Debugging  
-    Container \-- "Injects" \--\> Analysis  
-          
-    Orchestrator \-- "Controls" \--\> Planning  
-    Orchestrator \-- "Controls" \--\> Coding  
-    Orchestrator \-- "Controls" \--\> Search  
-    Orchestrator \-- "Controls" \--\> Execution  
-    Orchestrator \-- "Controls" \--\> Testing  
-    Orchestrator \-- "Controls" \--\> Debugging  
-    Orchestrator \-- "Controls" \--\> Analysis
+    subgraph "Services & LLM"
+        History["HistoryManager"]
+        LLMClient["LLMClient"]
+        Ollama["Ollama gemma3:latest"]
+    end
 
-    Planning \-- "Uses" \--\> LLMClient  
-    Coding \-- "Uses" \--\> LLMClient  
-    Debugging \-- "Uses" \--\> LLMClient  
-        
-    LLMClient \-- "Communicates with" \--\> Ollama
+    UI --> Orchestrator
+    Container -.-> Orchestrator
+    Container -.-> Planning
+    Container -.-> Architecture
+    Container -.-> Coding
+    Container -.-> Refactoring
+    Container -.-> Linting
+    Container -.-> Testing
+    Container -.-> Debugging
+    Container -.-> Execution
+    Container -.-> Dependency
+    Container -.-> Git
+    Container -.-> WebSearch
+    Container -.-> History
+
+    Orchestrator --> Planning
+    Orchestrator --> Architecture
+    Orchestrator --> Coding
+    Orchestrator --> Refactoring
+    Orchestrator --> Linting
+    Orchestrator --> Testing
+    Orchestrator --> Debugging
+    Orchestrator --> Execution
+    Orchestrator --> Dependency
+    Orchestrator --> Git
+    Orchestrator --> WebSearch
+    Orchestrator --> History
+
+    Planning --> LLMClient
+    Architecture --> LLMClient
+    Coding --> LLMClient
+    Refactoring --> LLMClient
+    Debugging --> LLMClient
+
+    LLMClient --> Ollama
+```
 
 ### **2\. コンポーネント詳細**
 
-* **main.py**: アプリケーションの起動、DIコンテナの初期化、ユーザーとの対話ループを担当  
-* **container.py**: dependency-injectorを使用し、システム全体のクラスのインスタンス生成と依存関係の注入を一元管理  
-* **orchestrator.py**: ユーザーの指示に基づき、PlanningAgentが立てた計画を実行する司令塔。アクションの種類に応じて適切なエージェントを呼び出し、全体のワークフローを制御する  
-* **llm\_client.py**: Ollamaサーバーとの通信をカプセル化するクライアント  
-* **schemas.py**: Pydanticを使用し、エージェント間で交換されるデータ構造（Action, CodeChangeなど）を厳密に定義する  
+* **main.py**: アプリケーションの起動、DIコンテナの初期化、ユーザーとの対話ループを担当します。  
+* **container.py**: システム全体のクラスのインスタンス生成と依存関係の注入を一元管理します。  
+* **orchestrator.py**: ユーザーの指示に基づき、PlanningAgentが立てた計画を実行する司令塔。アクションの種類に応じて適切なエージェントを呼び出し、自己修正ループを含む全体のワークフローを制御します。  
+* **llm\_client.py**: Ollamaサーバーとの通信をカプセル化するクライアントです。  
+* **schemas.py**: エージェント間で交換されるデータ構造（Action, CodeChangeなど）を厳密に定義します。  
 * **agents/**:  
-  * **planning\_agent.py**: ユーザーの要求とプロジェクトの状態を基に、次に行うべきアクション（Actionオブジェクト）を決定する  
-  * **coding\_agent.py**: Actionの指示に基づき、RAG（RetrievalAgent）で得たコンテキストを利用して、コードの生成・修正案（CodeChangeリスト）を作成する  
-  * **search\_agent.py**: プロジェクト内のファイルを対象に、キーワード検索を実行する  
-  * **execution\_agent.py**: pythonスクリプトの実行など、シェルコマンドを安全なサンドボックス内で実行し、結果を返す  
-  * **testing\_agent.py**: pytestを実行し、テスト結果を評価する  
-  * **debugging\_agent.py**: テストが失敗した場合、エラー情報と関連コードをLLMに渡し、修正案を生成させる  
-  * **analysis\_agent.py**: プロジェクトのファイル構造を静的に分析し、メタデータを作成する  
-* **rag/**:  
-  * **indexing\_agent.py**: プロジェクトのファイルをチャンクに分割し、VectorStoreにインデックスを作成する  
-  * **retrieval\_agent.py**: クエリに基づいて、関連性の高いコード片をVectorStoreから検索する  
-* **utils.py**: サンドボックス管理など、プロジェクト全体で共有される共通関数を格納する
+  * **planning\_agent.py**: ユーザーの要求とプロジェクトの状態、対話履歴を基に、実行すべきアクションの計画を生成します。  
+  * **architecture\_agent.py**: 抽象的な要求に対し、プロジェクトのファイル構造を設計し、ユーザーに提案します。  
+  * **coding\_agent.py**: コードの生成・修正案を作成します。  
+  * **refactoring\_agent.py**: 既存のコードを分析し、品質を向上させるためのリファクタリング案を生成します。  
+  * **linting\_agent.py**: flake8を実行し、コードのスタイルや品質を静的に解析します。  
+  * **testing\_agent.py**: pytestを実行し、テスト結果を評価します。  
+  * **debugging\_agent.py**: テストやLintのエラーを分析し、自動で修正案を生成します。  
+  * **execution\_agent.py**: シェルコマンドを安全なサンドボックス内で実行します。  
+  * **dependency\_agent.py**: pipを使い、プロジェクトの依存関係を管理します。  
+  * **git\_agent.py**: gitコマンドを実行し、バージョン管理を行います。  
+  * **web\_search\_agent.py**: Webを検索し、外部情報を収集します。  
+* **services/**:  
+  * **history\_manager.py**: 対話履歴の永続化を管理します。
 
-### **3\. データフロー**
+## **🌟 今後のロードマップ**
 
-ユーザーからのリクエストは、Orchestratorを中心とした動的なループで処理されます。
+AIDAは、さらなる自律性と能力の向上を目指し、以下の機能開発を計画しています。
 
-1\. User → Main: 開発タスクを入力  
-2\. Main → Orchestrator: run\_task(prompt)  
-3\. Loop開始:  
-   a. Orchestrator → PlanningAgent: run(goal, history, last\_result)  
-   b. PlanningAgent → Orchestrator: 次のAction  
-   c. if action.type \== "finish":  
-      \- Orchestrator → Main: タスク完了  
-      \- ループ終了  
-   d. else:  
-      \- Orchestrator → ActionAgents: action.typeに応じて実行  
-      \- ActionAgents → Orchestrator: 実行結果  
-      \- Orchestrator: last\_resultとhistoryを更新  
-   e. ループ継続
+* **自己改善能力の強化**:  
+  * **メタ学習**: 過去のタスク成功・失敗パターンを分析し、計画立案能力（プロンプト）を自己改善します。  
+  * **知識ベースの構築**: 成功したコードや設計パターンを学習し、新しい問題解決に再利用します。  
+* **高度なコード分析**:  
+  * **パフォーマンス・セキュリティ分析**: cProfileやbanditのような専門ツールと連携し、パフォーマンスのボトルネックやセキュリティ脆弱性を自動で発見・修正します。  
+  * **自動ドキュメント生成**: コード変更に基づき、README.mdやdocstringを自動で更新します。  
+* **DevOps自動化**:  
+  * **コンテナ化・CI/CD**: DockerfileやGitHub Actionsの設定を自動生成し、開発環境の構築からデプロイまでを自動化します。  
+* **高度な協調開発**:  
+  * **マルチエージェント・シミュレーション**: 複数の専門エージェント（フロントエンド担当、バックエンド担当など）が協調し、大規模なプロジェクトを並行して開発するシミュレーションを行います。
 
-### **4\. 主要なデータ構造**
+## **🤝 貢献**
 
-* **Action**: PlanningAgentが生成する、単一の実行単位  
-  * type (str): code, search, executeなど、実行すべきタスクの種類  
-  * description (str): タスクの詳細な指示内容  
-* **CodeChange**: CodingAgentが生成する、単一のファイル変更  
-  * file\_path (str): 変更対象のファイルパス  
-  * action (str): create, update, deleteのいずれか  
-  * content (str): 書き込むファイル全体のコンテンツ
+プロジェクトへの貢献を歓迎します。プルリクエストを送信する前に、まずIssueで議論してください。
 
-この構造により、LLMが曖昧な応答ではなく、プログラムで直接利用可能な形式で計画やコードを出力することを保証します。
+## **📝 ライセンス**
 
-## **🔧 設定**
-
-### **モデルの変更**
-
-デフォルトではgemma2:latestを使用しますが、他のOllamaモデルも利用可能です。
-
-\# 例: より大きなモデルを使用する場合  
-ollama pull llama2:13b  
-\`\`\`config.yml\`でモデル名を変更することで、使用するモデルを切り替えることができます。
-
-\#\#\# \*\*ワークスペースの変更\*\*
-
-デフォルトのワークスペースは\`aida/workspace/\`ですが、設定により他のディレクトリを指定することも可能です。
-
-\#\# \*\*🤝 貢献\*\*
-
-プロジェクトへの貢献を歓迎します。プルリクエストを送信する前に、以下のガイドラインに従ってください：
-
-1\. 新しい機能やバグ修正について、まずIssueで議論してください  
-2\. コードスタイルは既存のコードに合わせてください  
-3\. テストを追加し、すべてのテストが通ることを確認してください
-
-\#\# \*\*📝 ライセンス\*\*
-
-このプロジェクトは\[MIT License\](LICENSE)の下で公開されています。
-
-\#\# \*\*⚠️ 注意事項\*\*
-
-\- このシステムは開発中のため、予期しない動作をする場合があります  
-\- 重要なファイルは事前にバックアップを取ることを推奨します  
-\- サンドボックス環境での実行とはいえ、悪意のあるコードの実行には注意が必要です  
+このプロジェクトは[MIT License](https://www.google.com/search?q=LICENSE)の下で公開されています。
