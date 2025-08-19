@@ -10,3 +10,4 @@ dependency-injector
 langchain-text-splitters
 langchain-ollama
 google-api-python-client
+langchain-google-community
