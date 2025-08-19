@@ -1,2 +1,2 @@
 USER: こんにちは
-AIDA_ACTION: [clarify] The user said "こんにちは".  I understand this is a greeting in Japanese. Should I proceed with generating a simple response, or would you like to explore further interaction options?
+AIDA_ACTION: [clarify] The user said "こんにちは".  Could you please tell me what you would like me to do with this greeting? Are you looking for a translation, a response, or something else entirely?
