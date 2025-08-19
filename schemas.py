@@ -1,6 +1,6 @@
 # path: aida/schemas.py
 # title: Data Schemas
-# role: Defines the Pydantic models used for data exchange between agents.
+# role: Defines the Pantic models used for data exchange between agents.
 
 from pydantic import BaseModel, Field
 from typing import List, Optional

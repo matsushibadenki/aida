@@ -5,6 +5,7 @@
 import typing
 from pathlib import Path
 import shutil
+import re
 from aida.schemas import ProjectMetadata, Action, TaskState, CodeChange
 from aida.utils import sandbox_manager
 
@@ -121,6 +122,24 @@ class Orchestrator:
                         # Here you could insert the debugging loop if needed
                         break
                 
+                elif action.type == "chat":
+                    # Extract file path from description using regex
+                    match = re.search(r"`([^`]+)`", action.description)
+                    if match:
+                        file_path_str = match.group(1)
+                        target_file = Path(sandbox_path) / file_path_str
+                        if target_file.is_file():
+                            try:
+                                content = target_file.read_text(encoding='utf-8')
+                                print(f"--- Content of {file_path_str} ---\n{content}\n--------------------")
+                            except Exception as e:
+                                print(f"Error reading file {file_path_str}: {e}")
+                        else:
+                            print(f"File not found in sandbox: {file_path_str}")
+                    else:
+                        # Fallback for simple chat if no file path is found
+                        print(f"AIDA: {action.description}")
+
                 else:
                     print(f"--- ⚠️ Unknown action type: {action.type}. Skipping. ---")
 
